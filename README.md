@@ -1,2 +1,2 @@
 # qq-bot-water
-水群统计bot
+Q群水群统计bot
