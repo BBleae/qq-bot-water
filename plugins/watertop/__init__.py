@@ -73,15 +73,31 @@ class MyMongoClient(pymongo.MongoClient):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-
 db = MyMongoClient(host=config.host, port=config.port)[
     config.db]
 
+@singleton
+class Grass(object):
+    def __init__(self, *args, **kwargs):
+        self.last_grass = {}
+        super().__init__(*args, **kwargs)
+
+    async def send_grass(self, bot, group):
+        if group not in self.last_grass or time.time() - self.last_grass[group] > config.grass_delay:
+            try:
+                await bot.send_group_msg(group_id=group,message='草')
+            except CQHttpError as e:
+                logger.exception(e.retcode)
+            self.last_grass[group] = time.time()
+            
 
 @message_preprocessor
 async def funcname(bot, msg):
     if msg['self_id'] != msg['sender']['user_id'] and msg['sender']['user_id'] not in config.ignore_list and msg['message_type'] == 'group':
         db.watertop.insert(msg)
+        if msg['raw_message'] == '草':
+            grass = Grass()
+            await grass.send_grass(bot, msg['group_id'])
 
 
 @on_command('top', aliases=('watertop', '水群排行'), only_to_me=False)
