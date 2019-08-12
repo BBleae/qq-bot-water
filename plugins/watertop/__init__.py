@@ -148,15 +148,19 @@ async def top(session: CommandSession):
                 self_qqlist.append(k)
                 if k == session.ctx['sender']['user_id']:
                     break
-            try:
-                ranker = await session.bot.get_group_member_info(group_id=session.ctx['group_id'], user_id=session.ctx['sender']['user_id'])
-            except CQHttpError:
+            if self_qqlist[-1] == session.ctx['sender']['user_id']:
+
                 try:
-                    ranker = await session.bot.get_stranger_info(user_id=session.ctx['sender']['user_id'])
-                    ranker['card'] = ranker['nickname']
+                    ranker = await session.bot.get_group_member_info(group_id=session.ctx['group_id'], user_id=session.ctx['sender']['user_id'])
                 except CQHttpError:
-                    ranker = {'card': str(self_qqlist[i])+'(名称获取失败)'}
-            water_report = f"你在本群排第{str(len(self_qqlist))}名:共{self_sender[session.ctx['sender']['user_id']]}条\n本次查询花费{str(time.time() - time_before)}秒"
+                    try:
+                        ranker = await session.bot.get_stranger_info(user_id=session.ctx['sender']['user_id'])
+                        ranker['card'] = ranker['nickname']
+                    except CQHttpError:
+                        ranker = {'card': str(self_qqlist[i])+'(名称获取失败)'}
+                water_report = f"你在本群排第{str(len(self_qqlist))}名:共{self_sender[session.ctx['sender']['user_id']]}条\n本次查询花费{str(time.time() - time_before)}秒"
+            else:
+                water_report = '你已被加入bot忽略名单'
         
         
         elif command == 'BaseOnMe':
